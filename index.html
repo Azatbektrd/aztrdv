@@ -179,4 +179,42 @@ render();
 </script>
 <script src="/js/pwa.js" defer></script>
 </body>
+  <!-- Кнопка включения уведомлений -->
+<div style="text-align: center; margin: 20px;">
+  <button onclick="subscribeToPush()" style="padding: 10px 20px; font-size: 16px; background: #4CAF50; color: white; border: none; border-radius: 5px;">Включить уведомления</button>
+</div>
+
+<!-- Скрипт подписки -->
+<script>
+async function subscribeToPush() {
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const res = await fetch('/api/push/vapid-public-key');
+    const { key } = await res.json();
+
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: key
+    });
+
+    const response = await fetch('/api/push/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subscription: subscription,
+        userId: 'user_123'
+      })
+    });
+
+    if (response.ok) {
+      alert('Успешно! Уведомления включены.');
+    } else {
+      alert('Ошибка при сохранении подписки.');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Не удалось подписаться.');
+  }
+}
+</script>
 </html>
