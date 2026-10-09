@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+то<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
@@ -179,22 +179,37 @@ render();
 </script>
 <script src="/js/pwa.js" defer></script>
 </body>
-  <!-- Кнопка включения уведомлений -->
+<!-- Кнопка включения уведомлений -->
 <div style="text-align: center; margin: 20px;">
   <button onclick="subscribeToPush()" style="padding: 10px 20px; font-size: 16px; background: #4CAF50; color: white; border: none; border-radius: 5px;">Включить уведомления</button>
 </div>
 
-<!-- Скрипт подписки -->
+<!-- Скрипт подписки с конвертером ключа -->
 <script>
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 async function subscribeToPush() {
   try {
     const registration = await navigator.serviceWorker.ready;
     const res = await fetch('/api/push/vapid-public-key');
-    const { key } = await res.json();
+    const data = await res.json();
+
+    if (!data.key) {
+      throw new Error('Не удалось получить VAPID-ключ с сервера');
+    }
 
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: key
+      applicationServerKey: urlBase64ToUint8Array(data.key)
     });
 
     const response = await fetch('/api/push/subscribe', {
@@ -209,11 +224,12 @@ async function subscribeToPush() {
     if (response.ok) {
       alert('Успешно! Уведомления включены.');
     } else {
-      alert('Ошибка при сохранении подписки.');
+      const errText = await response.text();
+      alert('Ошибка сохранения на сервере: ' + errText);
     }
   } catch (err) {
     console.error(err);
-    alert('Не удалось подписаться.');
+    alert('Не удалось подписаться: ' + err.message);
   }
 }
 </script>
