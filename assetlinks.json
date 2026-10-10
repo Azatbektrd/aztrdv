@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "dev.workers.adaf.aztrdv.twa",
+        "sha256_cert_fingerprints": ["B5:06:15:C9:3D:E4:78:A6:26:3B:9D:0E:B3:73:05:AF:DA:86:D2:51:38:A6:2B:9E:E2:32:89:14:8D:28:B5:5F"]
+      }
+    }]
